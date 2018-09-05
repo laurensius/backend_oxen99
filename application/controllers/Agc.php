@@ -73,7 +73,7 @@ class Agc extends CI_Controller {
                 "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.1; Trident/5.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0; .NET4.0C; Tablet PC 2.0; InfoPath.3; .NET4.0E)",
                 "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0; Trident/5.0; SLCC1; .NET CLR 2.0.50727; Media Center PC 5.0; .NET CLR 3.5.30729; .NET CLR 3.0.30729; FDM; .NET4.0C; .NET4.0E; chromeframe/11.0.696.57)",
                 "Mozilla/4.0 (compatible; U; MSIE 9.0; WIndows NT 9.0; en-US)",
-                "Mozilla/4.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0; FunWebProducts)"        
+                "Mozilla/4.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0; FunWebProducts)"
             ),
             "Firefox"=>array (
                 "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0",
@@ -264,7 +264,7 @@ class Agc extends CI_Controller {
                 "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_3; ca-es) AppleWebKit/533.16 (KHTML, like Gecko) Version/5.0 Safari/533.16",
                 "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_5_8; zh-tw) AppleWebKit/533.16 (KHTML, like Gecko) Version/5.0 Safari/533.16",
                 "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_5_8; ja-jp) AppleWebKit/533.16 (KHTML, like Gecko) Version/5.0 Safari/533.16",
-                "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_5_8; it-it) AppleWebKit/533.16 (KHTML, like Gecko) Version/5.0 Safari/533.16"        
+                "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_5_8; it-it) AppleWebKit/533.16 (KHTML, like Gecko) Version/5.0 Safari/533.16"
             ),
             "Opera"=>array(
                 "Opera/9.80 (Windows NT 6.0) Presto/2.12.388 Version/12.14",
@@ -403,7 +403,7 @@ class Agc extends CI_Controller {
                 "Opera/9.80 (Windows NT 6.0; U; de) Presto/2.2.15 Version/10.00",
                 "Opera/9.80 (Windows NT 5.2; U; en) Presto/2.2.15 Version/10.00",
                 "Opera/9.80 (Windows NT 5.1; U; zh-cn) Presto/2.2.15 Version/10.00",
-                "Opera/9.80 (Windows NT 5.1; U; ru) Presto/2.2.15 Version/10.00"        
+                "Opera/9.80 (Windows NT 5.1; U; ru) Presto/2.2.15 Version/10.00"
             )
         );
         
@@ -417,12 +417,10 @@ class Agc extends CI_Controller {
         $this->google_image = "https://www.google.com/search?q=";
         $this->ask_image = "https://www.ask.com/web?q=";
         $this->bing_image = "http://www.bing.com/images/search?q=";
-        $this->yahoo_image = "https://us.search.yahoo.com/search?p=";
+        $this->yahoo_image = "https://images.search.yahoo.com/search/images?p=";
 
         // $this->load->model('mod_badword');
         // $this->badword = $this->mod_badword->get_badword();
-
-
         
 	}
 
@@ -434,24 +432,33 @@ class Agc extends CI_Controller {
         header('Content-type:json');
 		$raw_query_string = $this->uri->segment(3);
 		$clean_query_string = $this->clear_from_badword($raw_query_string);
-        // $hasil_google = $this->grabbing_google_article($clean_query_string);
-        //$hasil_ask = $this->grabbing_ask_article($clean_query_string);
-        //$hasil_bing = $this->grabbing_bing_article($clean_query_string);
-        //$hasil_yahoo = $this->grabbing_yahoo_article($clean_query_string);
+        $hasil_google = $this->grabbing_google_article($clean_query_string);
+        $hasil_ask = $this->grabbing_ask_article($clean_query_string);
+        $hasil_bing = $this->grabbing_bing_article($clean_query_string);
+        $hasil_yahoo = $this->grabbing_yahoo_article($clean_query_string);
         
-        //$response_article = array(
-            // "google" => $hasil_google,
-            //"ask" => $hasil_ask,
-            //"bing" => $hasil_bing,
-            //"yahoo" => $hasil_yahoo,
-        //);
-
+        $response_article = array(
+            "google" => $hasil_google,
+            "ask" => $hasil_ask,
+            "bing" => $hasil_bing,
+            "yahoo" => $hasil_yahoo,
+        );
         $hasil_google_image = $this->grabbing_google_image($clean_query_string);
+        $hasil_bing_image = $this->grabbing_bing_image($clean_query_string);
+        $hasil_yahoo_image = $this->grabbing_yahoo_image($clean_query_string);
+         
+        $response_image = array(
+            "google_image" => $hasil_google_image,
+            "yahoo_image" => $hasil_yahoo_image,
+            "bing_image" => $hasil_bing_image
+        );
 
-        // $response_image = array(
-        //     "google_image" => $hasil_google_image
-        // );
-        echo json_encode($hasil_google_image,JSON_PRETTY_PRINT);
+        $response = array(
+            "article" => $response_article,
+            "image" => $response_image,
+        );
+
+        echo json_encode($response,JSON_PRETTY_PRINT);
     }
 
 	function random_agent(){ //dipanggil di do_curl
@@ -471,7 +478,7 @@ class Agc extends CI_Controller {
 		return $clean_query_string;
 	}
 
-	function do_curl($url){ 
+	function do_curl($url){
 		if($url != null){
 			$user_agent = $this->random_agent();
             $curl = curl_init();
@@ -480,7 +487,7 @@ class Agc extends CI_Controller {
 			$header[0] .= "text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
 			$header[] = "Cache-Control: max-age=0";
 			$header[] = "Connection: keep-alive";
-			$header[] = "Keep-Alive: 300";
+			$header[] = "Keep-Alive: 30000";
 			$header[] = "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7";
 			$header[] = "Accept-Language: en-us,en;q=0.5";
 			$header[] = "Pragma: ";
@@ -496,7 +503,6 @@ class Agc extends CI_Controller {
 			return null;
 		}
 	}
-
 
     // --------------------------- GRABBING ARTIKEL DAR 4 SE TERKEMUK---------------------------------
 	function grabbing_google_article($clean_query_string){
@@ -650,7 +656,7 @@ class Agc extends CI_Controller {
         $hasil_curl = $this->do_curl($url);
         $html = new simple_html_dom();
         $html->load($hasil_curl);
-        //echo $hasil_curl; 
+        // echo $hasil_curl;
         $result = array();
 		if( $html && is_object($html) ){
             $x ;
@@ -680,11 +686,11 @@ class Agc extends CI_Controller {
         $html = new simple_html_dom();
         $html->load($hasil_curl);
         $result = array();
-        echo $hasil_curl;
+//         echo $hasil_curl;
 		if( $html && is_object($html) ){
             $x ;
             foreach($html->find('div[class="dg_b"] div[class="imgpt"]') as $gm){
-                echo "aya";
+//                 echo "aya";
                 $get_m_attr = $gm->find('a.iusc', 0)->m;
 				$get_m_attr =  stripslashes ( html_entity_decode( $get_m_attr ) ) ;
 				$get_json_m = json_decode( $get_m_attr,true );
@@ -696,6 +702,38 @@ class Agc extends CI_Controller {
             return $result;
         }else{
 			$result = array(
+                "link" => "",
+                "imgsrc" => "",
+                "title" => ""            );
+            return array($result);
+        }
+    }
+    
+    function grabbing_yahoo_image($clean_query_string){
+        $param = str_replace(' ','+',$clean_query_string);
+        $url = $this->yahoo_image . $param . "&imgl=fsu";
+        $hasil_curl = $this->do_curl($url);
+        $html = new simple_html_dom();
+        $html->load($hasil_curl);
+        $result = array();
+//         echo $hasil_curl;
+        if( $html && is_object($html) ){
+            $x ;
+            foreach($html->find('ul[id="sres"] li') as $gm){
+//                 echo "aya";
+                $get_m_attr = $gm->find('a', 0)->href;
+                parse_str( $get_m_attr , $output );
+//                 echo $output['imgurl'];
+                $imgurl     = isset( $output['imgurl'] ) ? $output['imgurl'] : '';
+                $title     = isset( $output['tt'] ) ? $output['tt'] : '';
+                
+                $item['imgsrc'] = stripslashes(html_entity_decode($imgurl));
+                $item['title'] = $title;
+                $result[] =  $item;
+            }
+            return $result;
+        }else{
+            $result = array(
                 "link" => "",
                 "imgsrc" => "",
                 "title" => ""            );
