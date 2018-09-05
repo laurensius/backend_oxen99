@@ -478,6 +478,109 @@ class Agc extends CI_Controller {
 		return $clean_query_string;
 	}
 
+    function clear_escape_character($raw_string){
+        /* Remove class=f and inner content
+        */
+        $raw_string = trim($raw_string);
+
+        $raw_string = preg_replace( '/<(span).*?class="\s*(?:.*\s)?f(?:\s[^"]+)?\s*"[^\>]*>(.*)<\/\1>/i', '', $raw_string );
+        
+        $raw_string = preg_replace('/(\d+) (\w+) (\d+)/i', '', $raw_string);
+        $raw_string = preg_replace('/(\w+) (\d+), (\d+)/i', '', $raw_string);
+        
+        /*
+        * Remove date format in string
+        * http://php.net/manual/en/function.preg-replace.php
+        */
+        $raw_string = preg_replace('/(\d+) (\w+) (\d+)/i', '', $raw_string);
+        $raw_string = preg_replace('/(\w+) (\d+), (\d+)/i', '', $raw_string);
+        
+        // remove number
+        $raw_string = preg_replace('/[0-9]+/', '', $raw_string);
+
+        /*
+        * Remove html in string
+        * https://php.net/strip_tags
+        */
+        //--------------$raw_string = wp_specialchars_decode(strip_tags($raw_string));
+        
+        // 1) convert á ô => a o
+        $raw_string = preg_replace("/[áàâãªä]/u","a",$raw_string);
+        $raw_string = preg_replace("/[ÁÀÂÃÄ]/u","A",$raw_string);
+        $raw_string = preg_replace("/[ÍÌÎÏ]/u","I",$raw_string);
+        $raw_string = preg_replace("/[íìîï]/u","i",$raw_string);
+        $raw_string = preg_replace("/[éèêë]/u","e",$raw_string);
+        $raw_string = preg_replace("/[ÉÈÊË]/u","E",$raw_string);
+        $raw_string = preg_replace("/[óòôõºö]/u","o",$raw_string);
+        $raw_string = preg_replace("/[ÓÒÔÕÖ]/u","O",$raw_string);
+        $raw_string = preg_replace("/[úùûü]/u","u",$raw_string);
+        $raw_string = preg_replace("/[ÚÙÛÜ]/u","U",$raw_string);
+        $raw_string = preg_replace("/[’‘‹›‚]/u","'",$raw_string);
+        $raw_string = preg_replace("/[“”«»„]/u",'"',$raw_string);
+        $raw_string = str_replace("–","-",$raw_string);
+        $raw_string = str_replace(" "," ",$raw_string);
+        $raw_string = str_replace("ç","c",$raw_string);
+        $raw_string = str_replace("Ç","C",$raw_string);
+        $raw_string = str_replace("ñ","n",$raw_string);
+        $raw_string = str_replace("Ñ","N",$raw_string);
+    
+        //2) Translation CP1252. &ndash; => -
+        $trans = get_html_translation_table(HTML_ENTITIES); 
+        $trans[chr(130)] = '&sbquo;';    // Single Low-9 Quotation Mark 
+        $trans[chr(131)] = '&fnof;';    // Latin Small Letter F With Hook 
+        $trans[chr(132)] = '&bdquo;';    // Double Low-9 Quotation Mark 
+        $trans[chr(133)] = '&hellip;';    // Horizontal Ellipsis 
+        $trans[chr(134)] = '&dagger;';    // Dagger 
+        $trans[chr(135)] = '&Dagger;';    // Double Dagger 
+        $trans[chr(136)] = '&circ;';    // Modifier Letter Circumflex Accent 
+        $trans[chr(137)] = '&permil;';    // Per Mille Sign 
+        $trans[chr(138)] = '&Scaron;';    // Latin Capital Letter S With Caron 
+        $trans[chr(139)] = '&lsaquo;';    // Single Left-Pointing Angle Quotation Mark 
+        $trans[chr(140)] = '&OElig;';    // Latin Capital Ligature OE 
+        $trans[chr(145)] = '&lsquo;';    // Left Single Quotation Mark 
+        $trans[chr(146)] = '&rsquo;';    // Right Single Quotation Mark 
+        $trans[chr(147)] = '&ldquo;';    // Left Double Quotation Mark 
+        $trans[chr(148)] = '&rdquo;';    // Right Double Quotation Mark 
+        $trans[chr(149)] = '&bull;';    // Bullet 
+        $trans[chr(150)] = '&ndash;';    // En Dash 
+        $trans[chr(151)] = '&mdash;';    // Em Dash 
+        $trans[chr(152)] = '&tilde;';    // Small Tilde 
+        $trans[chr(153)] = '&trade;';    // Trade Mark Sign 
+        $trans[chr(154)] = '&scaron;';    // Latin Small Letter S With Caron 
+        $trans[chr(155)] = '&rsaquo;';    // Single Right-Pointing Angle Quotation Mark 
+        $trans[chr(156)] = '&oelig;';    // Latin Small Ligature OE 
+        $trans[chr(159)] = '&Yuml;';    // Latin Capital Letter Y With Diaeresis 
+        $trans['euro'] = '&euro;';    // euro currency symbol 
+        ksort($trans); 
+        
+        foreach ($trans as $k => $v) {
+            $raw_string = str_replace($v, $k, $raw_string);
+        }
+    
+        // 3) remove <p>, <br/> ...
+        // --------------------------$result = wp_strip_all_tags($result); 
+        
+        // 5) remove Windows-1252 symbols like "TradeMark", "Euro"...
+        $raw_string = preg_replace('/[^(\x20-\x7F)]*/','', $raw_string); 
+        $raw_string = str_replace('#39;', '\'', $raw_string);
+        
+        $targets=array('\r\n','\n','\r','\t');
+        $results=array(" "," "," ","");
+        $raw_string =str_replace($targets,$results,$raw_string);
+
+        /*
+        * Remove URL in string
+        * http://stackoverflow.com/questions/5928951/remove-full-url-from-text
+        */
+        $raw_string = preg_replace('/(http|https|ftp|ftps)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?/', '', $raw_string);
+        $raw_string = preg_replace('|www\.[a-z\.0-9]+|i', '', $raw_string);
+        
+        $remove_this = array(' ....',' ...',' ..', '....','...','..', '.... ','... ','.. ','Read more', 'Show less', '%', ')', '&','-. -', '(', '/', '#',';','-',':','+');
+        $clean_string = str_replace($remove_this, ' ', $raw_string);
+
+        return $clean_string;
+    }
+
 	function do_curl($url){
 		if($url != null){
 			$user_agent = $this->random_agent();
@@ -514,10 +617,13 @@ class Agc extends CI_Controller {
 		if($html && is_object($html)){
             $result = array();
 			foreach($html->find('div.g') as $g){
-                $item['judul'] = isset($g->find('h3.r', 0)->innertext) ? $g->find('h3.r', 0)->innertext : '';
+                $item['judul'] = isset($g->find('h3.r a', 0)->innertext) ? $g->find('h3.r a', 0)->innertext : '';
                 $item['konten'] = isset($g->find('span.st', 0)->innertext) ? $g->find('span.st', 0)->innertext : '';
                 $item['judul'] = $this->clear_from_badword($item['judul']);
                 $item['konten'] = $this->clear_from_badword($item['konten']);
+                // $item['judul'] = $this->clear_escape_character($item['judul']);
+                // $item['konten'] = $this->clear_escape_character($item['konten']);
+                if($item['judul'] != "" && $item['konten'] != "")
 				$result[] =  $item;
 			}
 			$html->clear();
@@ -550,10 +656,11 @@ class Agc extends CI_Controller {
             $result = array();
 			foreach($html->find('div.PartialSearchResults-item') as $g){
 				// $item['judul'] = isset($g->find('div.PartialSearchResults-item-title', 0)->innertext) ? $g->find('div.PartialSearchResults-item-title', 0)->innertext : '';
-                $item['judul'] = isset($g->find('div.PartialSearchResults-item-title', 0)->innertext) ? $g->find('div.PartialSearchResults-item-title', 0)->innertext : '';
+                $item['judul'] = isset($g->find('div.PartialSearchResults-item-title a', 0)->innertext) ? $g->find('div.PartialSearchResults-item-title a', 0)->innertext : '';
                 $item['konten'] = isset($g->find('p.PartialSearchResults-item-abstract', 0)->innertext) ? $g->find('p.PartialSearchResults-item-abstract', 0)->innertext : '';
                 $item['judul'] = $this->clear_from_badword($item['judul']);
                 $item['konten'] = $this->clear_from_badword($item['konten']);
+                if($item['judul'] != "" && $item['konten'] != "")
 				$result[] =  $item;
 			}
 			$html->clear();
@@ -589,6 +696,7 @@ class Agc extends CI_Controller {
 				$item['konten'] = isset($g->find('p', 0)->innertext) ? $g->find('p', 0)->innertext : '';
                 $item['judul'] = $this->clear_from_badword($item['judul']);
                 $item['konten'] = $this->clear_from_badword($item['konten']);
+                if($item['judul'] != "" && $item['konten'] != "")
 				$result[] =  $item;
 			}
 			$html->clear();
@@ -620,10 +728,11 @@ class Agc extends CI_Controller {
 		if($html && is_object($html)){
             $result = array();
 			foreach($html->find('div#web li') as $g){
-				$item['judul'] = isset($g->find('h3.title', 0)->innertext) ? $g->find('h3.title', 0)->innertext : '';
+				$item['judul'] = isset($g->find('h3.title a', 0)->innertext) ? $g->find('h3.title a', 0)->innertext : '';
 				$item['konten'] = isset($g->find('p', 0)->innertext) ? $g->find('p', 0)->innertext : '';
                 $item['judul'] = $this->clear_from_badword($item['judul']);
                 $item['konten'] = $this->clear_from_badword($item['konten']);
+                if($item['judul'] != "" && $item['konten'] != "")
 				$result[] =  $item;
 			}
 			$html->clear();
