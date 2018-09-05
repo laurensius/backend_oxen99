@@ -483,6 +483,9 @@ class Agc extends CI_Controller {
         */
         $raw_string = trim($raw_string);
 
+        $arr_cari = array("<br>","<b>","</b>","<em>","</em>","<strong>","</strong>",'<span cl="f">','<span cl="news_dt">',"</span>" ," -");
+        $raw_string = str_replace($arr_cari," ",$raw_string);
+
         $raw_string = preg_replace( '/<(span).*?class="\s*(?:.*\s)?f(?:\s[^"]+)?\s*"[^\>]*>(.*)<\/\1>/i', '', $raw_string );
         
         $raw_string = preg_replace('/(\d+) (\w+) (\d+)/i', '', $raw_string);
@@ -572,13 +575,13 @@ class Agc extends CI_Controller {
         * Remove URL in string
         * http://stackoverflow.com/questions/5928951/remove-full-url-from-text
         */
-        $raw_string = preg_replace('/(http|https|ftp|ftps)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?/', '', $raw_string);
-        $raw_string = preg_replace('|www\.[a-z\.0-9]+|i', '', $raw_string);
+        //$raw_string = preg_replace('/(http|https|ftp|ftps)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?/', '', $raw_string);
+        //$raw_string = preg_replace('|www\.[a-z\.0-9]+|i', '', $raw_string);
         
         $remove_this = array(' ....',' ...',' ..', '....','...','..', '.... ','... ','.. ','Read more', 'Show less', '%', ')', '&','-. -', '(', '/', '#',';','-',':','+');
         $clean_string = str_replace($remove_this, ' ', $raw_string);
 
-        return $clean_string;
+        return trim($clean_string);
     }
 
 	function do_curl($url){
@@ -621,8 +624,8 @@ class Agc extends CI_Controller {
                 $item['konten'] = isset($g->find('span.st', 0)->innertext) ? $g->find('span.st', 0)->innertext : '';
                 $item['judul'] = $this->clear_from_badword($item['judul']);
                 $item['konten'] = $this->clear_from_badword($item['konten']);
-                // $item['judul'] = $this->clear_escape_character($item['judul']);
-                // $item['konten'] = $this->clear_escape_character($item['konten']);
+                $item['judul'] = $this->clear_escape_character($item['judul']);
+                $item['konten'] = $this->clear_escape_character($item['konten']);
                 if($item['judul'] != "" && $item['konten'] != "")
 				$result[] =  $item;
 			}
@@ -660,6 +663,8 @@ class Agc extends CI_Controller {
                 $item['konten'] = isset($g->find('p.PartialSearchResults-item-abstract', 0)->innertext) ? $g->find('p.PartialSearchResults-item-abstract', 0)->innertext : '';
                 $item['judul'] = $this->clear_from_badword($item['judul']);
                 $item['konten'] = $this->clear_from_badword($item['konten']);
+                $item['judul'] = $this->clear_escape_character($item['judul']);
+                $item['konten'] = $this->clear_escape_character($item['konten']);
                 if($item['judul'] != "" && $item['konten'] != "")
 				$result[] =  $item;
 			}
@@ -696,6 +701,8 @@ class Agc extends CI_Controller {
 				$item['konten'] = isset($g->find('p', 0)->innertext) ? $g->find('p', 0)->innertext : '';
                 $item['judul'] = $this->clear_from_badword($item['judul']);
                 $item['konten'] = $this->clear_from_badword($item['konten']);
+                $item['judul'] = $this->clear_escape_character($item['judul']);
+                $item['konten'] = $this->clear_escape_character($item['konten']);
                 if($item['judul'] != "" && $item['konten'] != "")
 				$result[] =  $item;
 			}
@@ -732,6 +739,8 @@ class Agc extends CI_Controller {
 				$item['konten'] = isset($g->find('p', 0)->innertext) ? $g->find('p', 0)->innertext : '';
                 $item['judul'] = $this->clear_from_badword($item['judul']);
                 $item['konten'] = $this->clear_from_badword($item['konten']);
+                $item['judul'] = $this->clear_escape_character($item['judul']);
+                $item['konten'] = $this->clear_escape_character($item['konten']);
                 if($item['judul'] != "" && $item['konten'] != "")
 				$result[] =  $item;
 			}
@@ -774,7 +783,7 @@ class Agc extends CI_Controller {
                 $data = json_decode($gm, true);
 			    $item['link'] = $data['ru'];
 				$item['imgsrc'] = $data['ou'];
-				$item['title'] = $data['s'];
+                $item['title'] = $data['s'];
 				$result[] =  $item;
             }
             return $result;
@@ -805,7 +814,7 @@ class Agc extends CI_Controller {
 				$get_json_m = json_decode( $get_m_attr,true );
 			    $item['link'] = $get_json_m['purl'];
 				$item['imgsrc'] = $get_json_m['murl'];
-				$item['title'] = $gm->find('img', 0)->alt;
+                $item['title'] = $gm->find('img', 0)->alt;
 				$result[] =  $item;
             }
             return $result;
