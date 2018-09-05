@@ -5,15 +5,32 @@ class Site extends CI_Controller {
 
 	public function __construct(){
 		parent::__construct();
+		$this->load->model('mod_config');
+		$this->load->model('mod_post');
+
+		$this->site_config = $this->mod_config->get_config();
+		$this->theme = $this->site_config[0]->site_theme;
 	}
 
 	public function index(){
-		$this->load->view('site/homepage');
+		$data["config"] = $this->site_config;
+		$data["latest_post"] = $this->mod_post->get_latest_post($this->site_config[0]->post_homepage);
+		$this->load->view($this->theme.'/homepage',$data);
 	}
 
-	public function detail(){
-		$this->load->view('site/detail');
+	public function detail($slug){
+		// $this->load->view('site/detail');
+		header('Content-type:json');
+		$hasil = $this->mod_post->get_post_by_slug($slug);
+		echo json_encode($hasil,JSON_PRETTY_PRINT);
 	}
+
+	public function sitemap(){
+		header("Content-Type: text/xml;charset=iso-8859-1");
+		$data["posts"] = $this->mod_post->get_all_post();
+		$this->load->view($this->theme.'/sitemap',$data);	
+	}
+
 
 	
 }
