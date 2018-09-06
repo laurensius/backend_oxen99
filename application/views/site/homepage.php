@@ -108,7 +108,7 @@
                                     </div>
                                 </div>
                                 <div class="post-content overflow">
-                                    <h2 class="post-title bold"><a href="blogdetails.html"><?php echo $latest_post[$x]->post_title; ?></a></h2>
+                                    <h2 class="post-title bold"><a href="<?php echo site_url('result/' . $latest_post[$x]->post_slug ); ?>"><?php echo $latest_post[$x]->post_title; ?></a></h2>
                                     <h3 class="post-author"><a href="#">Posted by <?php echo $latest_post[$x]->post_writer; ?></a></h3>
                                     <p>
                                     <?php

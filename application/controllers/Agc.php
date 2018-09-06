@@ -419,10 +419,19 @@ class Agc extends CI_Controller {
         $this->bing_image = "http://www.bing.com/images/search?q=";
         $this->yahoo_image = "https://images.search.yahoo.com/search/images?p=";
 
-        // $this->load->model('mod_badword');
+        $this->load->model('mod_cron');
         // $this->badword = $this->mod_badword->get_badword();
         
-	}
+    }
+    
+    public function cron_test(){
+        $data = array(
+            "random_value" => rand(0,666),
+            "datetime" => date("Y-m-d H:i:s")
+        );
+        $this->mod_cron->cron_insert($data);
+        
+    }
 
 	public function index(){
 		echo $this->random_agent();
@@ -430,35 +439,38 @@ class Agc extends CI_Controller {
 
 	public function oxen99(){
         header('Content-type:json');
-		$raw_query_string = $this->uri->segment(3);
-		$clean_query_string = $this->clear_from_badword($raw_query_string);
-        $hasil_google = $this->grabbing_google_article($clean_query_string);
-        $hasil_ask = $this->grabbing_ask_article($clean_query_string);
-        $hasil_bing = $this->grabbing_bing_article($clean_query_string);
-        $hasil_yahoo = $this->grabbing_yahoo_article($clean_query_string);
-        
-        $response_article = array(
-            "google" => $hasil_google,
-            "ask" => $hasil_ask,
-            "bing" => $hasil_bing,
-            "yahoo" => $hasil_yahoo,
-        );
-        $hasil_google_image = $this->grabbing_google_image($clean_query_string);
-        $hasil_bing_image = $this->grabbing_bing_image($clean_query_string);
-        $hasil_yahoo_image = $this->grabbing_yahoo_image($clean_query_string);
-         
-        $response_image = array(
-            "google_image" => $hasil_google_image,
-            "yahoo_image" => $hasil_yahoo_image,
-            "bing_image" => $hasil_bing_image
-        );
-
-        $response = array(
-            "article" => $response_article,
-            "image" => $response_image,
-        );
-
-        echo json_encode($response,JSON_PRETTY_PRINT);
+        for($x=0;$x<1;$x++){
+            $raw_query_string = $this->uri->segment(3);
+            $clean_query_string = $this->clear_from_badword($raw_query_string);
+            $hasil_google = $this->grabbing_google_article($clean_query_string);
+            $hasil_ask = $this->grabbing_ask_article($clean_query_string);
+            $hasil_bing = $this->grabbing_bing_article($clean_query_string);
+            $hasil_yahoo = $this->grabbing_yahoo_article($clean_query_string);
+            
+            $response_article = array(
+                "google" => $hasil_google,
+                "ask" => $hasil_ask,
+                "bing" => $hasil_bing,
+                "yahoo" => $hasil_yahoo,
+            );
+            $hasil_google_image = $this->grabbing_google_image($clean_query_string);
+            $hasil_bing_image = $this->grabbing_bing_image($clean_query_string);
+            $hasil_yahoo_image = $this->grabbing_yahoo_image($clean_query_string);
+             
+            $response_image = array(
+                "google_image" => $hasil_google_image,
+                "yahoo_image" => $hasil_yahoo_image,
+                "bing_image" => $hasil_bing_image
+            );
+    
+            $response = array(
+                "article" => $response_article,
+                "image" => $response_image,
+            );
+    
+            echo json_encode($response,JSON_PRETTY_PRINT);
+        }
+       
     }
 
 	function random_agent(){ //dipanggil di do_curl
@@ -479,32 +491,26 @@ class Agc extends CI_Controller {
 	}
 
     function clear_escape_character($raw_string){
-        /* Remove class=f and inner content
-        */
+        /* Remove class=f and inner content*/
         $raw_string = trim($raw_string);
-
-        $arr_cari = array("<br>","<b>","</b>","<em>","</em>","<strong>","</strong>",'<span cl="f">','<span cl="news_dt">',"</span>" ," -");
+        $arr_cari = array("<br>","<b>","</b>","<em>","</em>","<strong>","</strong>",'<span cl="r">','<span cl="f">','<span cl="news_dt">',"</span>" ," -");
         $raw_string = str_replace($arr_cari," ",$raw_string);
+        
+        $arr_cari = array("|");
+        $raw_string = str_replace($arr_cari,"",$raw_string);
+        
 
         $raw_string = preg_replace( '/<(span).*?class="\s*(?:.*\s)?f(?:\s[^"]+)?\s*"[^\>]*>(.*)<\/\1>/i', '', $raw_string );
-        
         $raw_string = preg_replace('/(\d+) (\w+) (\d+)/i', '', $raw_string);
         $raw_string = preg_replace('/(\w+) (\d+), (\d+)/i', '', $raw_string);
         
-        /*
-        * Remove date format in string
-        * http://php.net/manual/en/function.preg-replace.php
-        */
+        /*Remove date format in string*/
         $raw_string = preg_replace('/(\d+) (\w+) (\d+)/i', '', $raw_string);
         $raw_string = preg_replace('/(\w+) (\d+), (\d+)/i', '', $raw_string);
         
         // remove number
         $raw_string = preg_replace('/[0-9]+/', '', $raw_string);
 
-        /*
-        * Remove html in string
-        * https://php.net/strip_tags
-        */
         //--------------$raw_string = wp_specialchars_decode(strip_tags($raw_string));
         
         // 1) convert á ô => a o
@@ -559,28 +565,15 @@ class Agc extends CI_Controller {
         foreach ($trans as $k => $v) {
             $raw_string = str_replace($v, $k, $raw_string);
         }
-    
-        // 3) remove <p>, <br/> ...
-        // --------------------------$result = wp_strip_all_tags($result); 
         
         // 5) remove Windows-1252 symbols like "TradeMark", "Euro"...
         $raw_string = preg_replace('/[^(\x20-\x7F)]*/','', $raw_string); 
         $raw_string = str_replace('#39;', '\'', $raw_string);
-        
         $targets=array('\r\n','\n','\r','\t');
         $results=array(" "," "," ","");
         $raw_string =str_replace($targets,$results,$raw_string);
-
-        /*
-        * Remove URL in string
-        * http://stackoverflow.com/questions/5928951/remove-full-url-from-text
-        */
-        //$raw_string = preg_replace('/(http|https|ftp|ftps)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?/', '', $raw_string);
-        //$raw_string = preg_replace('|www\.[a-z\.0-9]+|i', '', $raw_string);
-        
         $remove_this = array(' ....',' ...',' ..', '....','...','..', '.... ','... ','.. ','Read more', 'Show less', '%', ')', '&','-. -', '(', '/', '#',';','-',':','+');
         $clean_string = str_replace($remove_this, ' ', $raw_string);
-
         return trim($clean_string);
     }
 
@@ -624,8 +617,8 @@ class Agc extends CI_Controller {
                 $item['konten'] = isset($g->find('span.st', 0)->innertext) ? $g->find('span.st', 0)->innertext : '';
                 $item['judul'] = $this->clear_from_badword($item['judul']);
                 $item['konten'] = $this->clear_from_badword($item['konten']);
-                $item['judul'] = $this->clear_escape_character($item['judul']);
-                $item['konten'] = $this->clear_escape_character($item['konten']);
+                $item['judul'] = trim($this->clear_escape_character($item['judul']));
+                $item['konten'] = trim($this->clear_escape_character($item['konten']));
                 if($item['judul'] != "" && $item['konten'] != "")
 				$result[] =  $item;
 			}
@@ -658,13 +651,12 @@ class Agc extends CI_Controller {
 		if($html && is_object($html)){
             $result = array();
 			foreach($html->find('div.PartialSearchResults-item') as $g){
-				// $item['judul'] = isset($g->find('div.PartialSearchResults-item-title', 0)->innertext) ? $g->find('div.PartialSearchResults-item-title', 0)->innertext : '';
-                $item['judul'] = isset($g->find('div.PartialSearchResults-item-title a', 0)->innertext) ? $g->find('div.PartialSearchResults-item-title a', 0)->innertext : '';
+				$item['judul'] = isset($g->find('div.PartialSearchResults-item-title a', 0)->innertext) ? $g->find('div.PartialSearchResults-item-title a', 0)->innertext : '';
                 $item['konten'] = isset($g->find('p.PartialSearchResults-item-abstract', 0)->innertext) ? $g->find('p.PartialSearchResults-item-abstract', 0)->innertext : '';
                 $item['judul'] = $this->clear_from_badword($item['judul']);
                 $item['konten'] = $this->clear_from_badword($item['konten']);
-                $item['judul'] = $this->clear_escape_character($item['judul']);
-                $item['konten'] = $this->clear_escape_character($item['konten']);
+                $item['judul'] = trim($this->clear_escape_character($item['judul']));
+                $item['konten'] = trim($this->clear_escape_character($item['konten']));
                 if($item['judul'] != "" && $item['konten'] != "")
 				$result[] =  $item;
 			}
@@ -701,8 +693,8 @@ class Agc extends CI_Controller {
 				$item['konten'] = isset($g->find('p', 0)->innertext) ? $g->find('p', 0)->innertext : '';
                 $item['judul'] = $this->clear_from_badword($item['judul']);
                 $item['konten'] = $this->clear_from_badword($item['konten']);
-                $item['judul'] = $this->clear_escape_character($item['judul']);
-                $item['konten'] = $this->clear_escape_character($item['konten']);
+                $item['judul'] = trim($this->clear_escape_character($item['judul']));
+                $item['konten'] = trim($this->clear_escape_character($item['konten']));
                 if($item['judul'] != "" && $item['konten'] != "")
 				$result[] =  $item;
 			}
@@ -739,8 +731,8 @@ class Agc extends CI_Controller {
 				$item['konten'] = isset($g->find('p', 0)->innertext) ? $g->find('p', 0)->innertext : '';
                 $item['judul'] = $this->clear_from_badword($item['judul']);
                 $item['konten'] = $this->clear_from_badword($item['konten']);
-                $item['judul'] = $this->clear_escape_character($item['judul']);
-                $item['konten'] = $this->clear_escape_character($item['konten']);
+                $item['judul'] = trim($this->clear_escape_character($item['judul']));
+                $item['konten'] = trim($this->clear_escape_character($item['konten']));
                 if($item['judul'] != "" && $item['konten'] != "")
 				$result[] =  $item;
 			}

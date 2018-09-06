@@ -7,7 +7,6 @@ class Site extends CI_Controller {
 		parent::__construct();
 		$this->load->model('mod_config');
 		$this->load->model('mod_post');
-
 		$this->site_config = $this->mod_config->get_config();
 		$this->theme = $this->site_config[0]->site_theme;
 	}
@@ -23,6 +22,23 @@ class Site extends CI_Controller {
 		header('Content-type:json');
 		$hasil = $this->mod_post->get_post_by_slug($slug);
 		echo json_encode($hasil,JSON_PRETTY_PRINT);
+	}
+
+
+	public function copyright(){
+		echo "Copyright";
+	}
+
+	public function privacy_policy(){
+		echo "Privacy Policy";
+	}
+
+	public function toc(){
+		echo "Terms and Conditions";
+	}
+
+	public function contact_us(){
+		echo "Contact Us";
 	}
 
 	public function sitemap(){
