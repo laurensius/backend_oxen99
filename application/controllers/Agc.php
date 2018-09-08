@@ -421,63 +421,153 @@ class Agc extends CI_Controller {
 
         $this->load->model('mod_cron');
         $this->load->model('mod_user');
-        // $this->badword = $this->mod_badword->get_badword();
+        $this->load->model('mod_keyword');
+        $this->load->model('mod_post');
         
     }
     
-    public function cron_test(){
+    public function cronjob(){
+        $xuid = date("YmdHiS");
         $rand_first_name = rand(1,88799);
-        $rand_last_name = rand(1,88799);
+        $rand_last_name = rand(1,5163);
         $load_user = $this->mod_user->get_raw_user($rand_first_name,$rand_last_name);
         $user =  $load_user[0]->first_name . " " . $load_user[0]->last_name; 
-        $data = array(
-            "random_value" => $user,
-            "datetime" => date("Y-m-d H:i:s")
-        );
-        $this->mod_cron->cron_insert($data);
+        $load_recent_keyword = $this->mod_cron->get_recent_keyword();
+        $current_keyword_id = $load_recent_keyword[0]->cron_recent_keyword + 1;
+        $hasil_cek = false;
+        $current_keyword_string = null;
+        while($hasil_cek != true){
+            $data_where = array("id" => $current_keyword_id);
+            $result = $this->mod_keyword->get_keyword_status($data_where);
+            if(sizeof($result) > 0){
+                if($result[0]->keyword_status == "active"){
+                    $hasil_cek = true;
+                    $current_keyword_string = $result[0]->keyword;
+                }else{
+                    $hasil_cek = false;
+                    $current_keyword_id++;
+                }
+            }else{
+                $hasil_cek = false;
+                $current_keyword_id++;
+            }
+        } 
+
+        // echo json_encode($this->oxen99($result[0]->keyword),JSON_PRETTY_PRINT);
+        $oxen99_result = $this->oxen99($result[0]->keyword);
+
+        // echo $oxen99_result["article"]["google"][5]["judul"] ."<br>";
+        // echo $oxen99_result["article"]["google"][5]["konten"] ."<br>";
+        $post_title = ucwords($current_keyword_string);
+        $post_slug = str_replace(' ','-',strtolower($current_keyword_string."html")); 
+        $post_content = "";
+        $post_writter = $user;
+        $post_status = "publish";
+        $post_thumb_image = "";
+        $post_datetime = date("Y-m-d H:i:s");
+        $keyword_id = $current_keyword_id;
+
+        $cron_recent_keyword = $current_keyword_id;
+        $cron_datetime = date("Y-m-d H:i:s");
+        $cron_result = 0;
+
+        if(sizeof($oxen99_result["article"]["google"]) > 0 ){
+            for($x=0;$x<sizeof($oxen99_result["article"]["google"]);$x++){
+                $this->insert_keyword(
+                    array(
+                        "keyword" => ucwords($oxen99_result["article"]["google"][$x]["judul"]),
+                        "keyword_status" => "active"
+                    ));
+                $post_content .= ucwords($oxen99_result["article"]["google"][$x]["konten"]);
+            }
+
+        }
+
+        if(sizeof($oxen99_result["article"]["ask"]) > 0 ){
+            for($x=0;$x<sizeof($oxen99_result["article"]["ask"]);$x++){
+                $this->insert_keyword(
+                    array(
+                        "keyword" => ucwords($oxen99_result["article"]["ask"][$x]["judul"]),
+                        "keyword_status" => "active"
+                    ));
+                $post_content .= ucwords($oxen99_result["article"]["ask"][$x]["konten"]);
+            }
+        }
+
+        if(sizeof($oxen99_result["article"]["bing"]) > 0 ){
+            for($x=0;$x<sizeof($oxen99_result["article"]["bing"]);$x++){
+                $this->insert_keyword(
+                    array(
+                        "keyword" => ucwords($oxen99_result["article"]["bing"][$x]["judul"]),
+                        "keyword_status" => "active"
+                    ));
+                $post_content .= ucwords($oxen99_result["article"]["bing"][$x]["konten"]);
+            }
+        }
+
+        if(sizeof($oxen99_result["article"]["yahoo"]) > 0 ){
+            for($x=0;$x<sizeof($oxen99_result["article"]["yahoo"]);$x++){
+                $this->insert_keyword(
+                    array(
+                        "keyword" => ucwords($oxen99_result["article"]["yahoo"][$x]["judul"]),
+                        "keyword_status" => "active"
+                    ));
+                $post_content .= ucwords($oxen99_result["article"]["yahoo"][$x]["konten"]);
+            }
+        }
+
+        echo $post_content;
+
+
+        if(sizeof($oxen99_result["image"]["google_image"]) > 0 ){
+
+        }
+
+        if(sizeof($oxen99_result["image"]["bing_image"]) > 0 ){
+
+        }
+
+        if(sizeof($oxen99_result["image"]["yahoo_image"]) > 0 ){
+
+        }
+
     }
 
 	public function index(){
 		echo $this->random_agent();
 	}
 
-	public function oxen99(){
-        header('Content-type:json');
-        for($x=0;$x<1;$x++){
-            $raw_query_string = $this->uri->segment(3);
-            $clean_query_string = $this->clear_from_badword($raw_query_string);
-            $hasil_google = $this->grabbing_google_article($clean_query_string);
-            $hasil_ask = $this->grabbing_ask_article($clean_query_string);
-            $hasil_bing = $this->grabbing_bing_article($clean_query_string);
-            $hasil_yahoo = $this->grabbing_yahoo_article($clean_query_string);
+	public function oxen99($raw_query_string){
+        $clean_query_string = $this->clear_from_badword($raw_query_string);
+        $hasil_google = $this->grabbing_google_article($clean_query_string);
+        $hasil_ask = $this->grabbing_ask_article($clean_query_string);
+        $hasil_bing = $this->grabbing_bing_article($clean_query_string);
+        $hasil_yahoo = $this->grabbing_yahoo_article($clean_query_string);
+        
+        $response_article = array(
+            "google" => $hasil_google,
+            "ask" => $hasil_ask,
+            "bing" => $hasil_bing,
+            "yahoo" => $hasil_yahoo,
+        );
+        $hasil_google_image = $this->grabbing_google_image($clean_query_string);
+        $hasil_bing_image = $this->grabbing_bing_image($clean_query_string);
+        $hasil_yahoo_image = $this->grabbing_yahoo_image($clean_query_string);
             
-            $response_article = array(
-                "google" => $hasil_google,
-                "ask" => $hasil_ask,
-                "bing" => $hasil_bing,
-                "yahoo" => $hasil_yahoo,
-            );
-            $hasil_google_image = $this->grabbing_google_image($clean_query_string);
-            $hasil_bing_image = $this->grabbing_bing_image($clean_query_string);
-            $hasil_yahoo_image = $this->grabbing_yahoo_image($clean_query_string);
-             
-            $response_image = array(
-                "google_image" => $hasil_google_image,
-                "yahoo_image" => $hasil_yahoo_image,
-                "bing_image" => $hasil_bing_image
-            );
-    
-            $response = array(
-                "article" => $response_article,
-                "image" => $response_image,
-            );
-    
-            echo json_encode($response,JSON_PRETTY_PRINT);
-        }
-       
+        $response_image = array(
+            "google_image" => $hasil_google_image,
+            "yahoo_image" => $hasil_yahoo_image,
+            "bing_image" => $hasil_bing_image
+        );
+
+        $response = array(
+            "article" => $response_article,
+            "image" => $response_image,
+        );
+        return $response;
     }
 
-	function random_agent(){ //dipanggil di do_curl
+	function random_agent(){ 
 		$random_jenis = rand( 0 , sizeof($this->array_browser) - 1 );
 		$x = 0;
 		foreach($this->array_browser as $key => $value) {
@@ -495,7 +585,6 @@ class Agc extends CI_Controller {
 	}
 
     function clear_escape_character($raw_string){
-        /* Remove class=f and inner content*/
         $raw_string = trim($raw_string);
         $arr_cari = array("<br>","<b>","</b>","<em>","</em>","<strong>","</strong>",'<span cl="r">','<span cl="f">','<span cl="news_dt">',"</span>" ," -");
         $raw_string = str_replace($arr_cari," ",$raw_string);
@@ -508,11 +597,9 @@ class Agc extends CI_Controller {
         $raw_string = preg_replace('/(\d+) (\w+) (\d+)/i', '', $raw_string);
         $raw_string = preg_replace('/(\w+) (\d+), (\d+)/i', '', $raw_string);
         
-        /*Remove date format in string*/
         $raw_string = preg_replace('/(\d+) (\w+) (\d+)/i', '', $raw_string);
         $raw_string = preg_replace('/(\w+) (\d+), (\d+)/i', '', $raw_string);
         
-        // remove number
         $raw_string = preg_replace('/[0-9]+/', '', $raw_string);
 
         //--------------$raw_string = wp_specialchars_decode(strip_tags($raw_string));
@@ -621,8 +708,8 @@ class Agc extends CI_Controller {
                 $item['konten'] = isset($g->find('span.st', 0)->innertext) ? $g->find('span.st', 0)->innertext : '';
                 $item['judul'] = $this->clear_from_badword($item['judul']);
                 $item['konten'] = $this->clear_from_badword($item['konten']);
-                $item['judul'] = trim($this->clear_escape_character($item['judul']));
-                $item['konten'] = trim($this->clear_escape_character($item['konten']));
+                $item['judul'] = trim(preg_replace('/\s+/',' ', $this->clear_escape_character($item['judul'])));
+                $item['konten'] = trim(preg_replace('/\s+/',' ', $this->clear_escape_character($item['konten'])));
                 if($item['judul'] != "" && $item['konten'] != "")
 				$result[] =  $item;
 			}
@@ -659,8 +746,8 @@ class Agc extends CI_Controller {
                 $item['konten'] = isset($g->find('p.PartialSearchResults-item-abstract', 0)->innertext) ? $g->find('p.PartialSearchResults-item-abstract', 0)->innertext : '';
                 $item['judul'] = $this->clear_from_badword($item['judul']);
                 $item['konten'] = $this->clear_from_badword($item['konten']);
-                $item['judul'] = trim($this->clear_escape_character($item['judul']));
-                $item['konten'] = trim($this->clear_escape_character($item['konten']));
+                $item['judul'] = trim(preg_replace('/\s+/',' ', $this->clear_escape_character($item['judul'])));
+                $item['konten'] = trim(preg_replace('/\s+/',' ', $this->clear_escape_character($item['konten'])));
                 if($item['judul'] != "" && $item['konten'] != "")
 				$result[] =  $item;
 			}
@@ -697,8 +784,8 @@ class Agc extends CI_Controller {
 				$item['konten'] = isset($g->find('p', 0)->innertext) ? $g->find('p', 0)->innertext : '';
                 $item['judul'] = $this->clear_from_badword($item['judul']);
                 $item['konten'] = $this->clear_from_badword($item['konten']);
-                $item['judul'] = trim($this->clear_escape_character($item['judul']));
-                $item['konten'] = trim($this->clear_escape_character($item['konten']));
+                $item['judul'] = trim(preg_replace('/\s+/',' ', $this->clear_escape_character($item['judul'])));
+                $item['konten'] = trim(preg_replace('/\s+/',' ', $this->clear_escape_character($item['konten'])));
                 if($item['judul'] != "" && $item['konten'] != "")
 				$result[] =  $item;
 			}
@@ -735,8 +822,8 @@ class Agc extends CI_Controller {
 				$item['konten'] = isset($g->find('p', 0)->innertext) ? $g->find('p', 0)->innertext : '';
                 $item['judul'] = $this->clear_from_badword($item['judul']);
                 $item['konten'] = $this->clear_from_badword($item['konten']);
-                $item['judul'] = trim($this->clear_escape_character($item['judul']));
-                $item['konten'] = trim($this->clear_escape_character($item['konten']));
+                $item['judul'] = trim(preg_replace('/\s+/',' ', $this->clear_escape_character($item['judul'])));
+                $item['konten'] = trim(preg_replace('/\s+/',' ', $this->clear_escape_character($item['konten'])));
                 if($item['judul'] != "" && $item['konten'] != "")
 				$result[] =  $item;
 			}
@@ -770,7 +857,6 @@ class Agc extends CI_Controller {
         $hasil_curl = $this->do_curl($url);
         $html = new simple_html_dom();
         $html->load($hasil_curl);
-        // echo $hasil_curl;
         $result = array();
 		if( $html && is_object($html) ){
             $x ;
@@ -779,7 +865,7 @@ class Agc extends CI_Controller {
                 $data = json_decode($gm, true);
 			    $item['link'] = $data['ru'];
 				$item['imgsrc'] = $data['ou'];
-                $item['title'] = $data['s'];
+                $item['title'] = $this->clear_escape_character($data['s']);
 				$result[] =  $item;
             }
             return $result;
@@ -800,17 +886,15 @@ class Agc extends CI_Controller {
         $html = new simple_html_dom();
         $html->load($hasil_curl);
         $result = array();
-//         echo $hasil_curl;
 		if( $html && is_object($html) ){
             $x ;
             foreach($html->find('div[class="dg_b"] div[class="imgpt"]') as $gm){
-//                 echo "aya";
                 $get_m_attr = $gm->find('a.iusc', 0)->m;
 				$get_m_attr =  stripslashes ( html_entity_decode( $get_m_attr ) ) ;
 				$get_json_m = json_decode( $get_m_attr,true );
 			    $item['link'] = $get_json_m['purl'];
 				$item['imgsrc'] = $get_json_m['murl'];
-                $item['title'] = $gm->find('img', 0)->alt;
+                $item['title'] = $this->clear_escape_character($gm->find('img', 0)->alt);
 				$result[] =  $item;
             }
             return $result;
@@ -830,19 +914,16 @@ class Agc extends CI_Controller {
         $html = new simple_html_dom();
         $html->load($hasil_curl);
         $result = array();
-//         echo $hasil_curl;
         if( $html && is_object($html) ){
             $x ;
             foreach($html->find('ul[id="sres"] li') as $gm){
-//                 echo "aya";
                 $get_m_attr = $gm->find('a', 0)->href;
                 parse_str( $get_m_attr , $output );
-//                 echo $output['imgurl'];
                 $imgurl     = isset( $output['imgurl'] ) ? $output['imgurl'] : '';
                 $title     = isset( $output['tt'] ) ? $output['tt'] : '';
                 
                 $item['imgsrc'] = stripslashes(html_entity_decode($imgurl));
-                $item['title'] = $title;
+                $item['title'] = $this->clear_escape_character($title);
                 $result[] =  $item;
             }
             return $result;
@@ -854,9 +935,21 @@ class Agc extends CI_Controller {
             return array($result);
         }
     }
-
-
-
-
     // --------------------------- END OF GRABBING GAMBAR DARI 4 SE TERKEMUK------------------------------
+
+    function insert_keyword($data){
+        $this->mod_keyword->insert_keyword($data);
+    }
+
+    function insert_article($data){
+        $this->mod_post->insert_article($data);
+    }
+
+    function insert_image($data){
+        $this->mod_post->insert_image($data);
+    }
+
+    function insert_cron($data){
+        $this->mod_cron->insert_cron($data);
+    }
 }
