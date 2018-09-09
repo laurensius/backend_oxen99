@@ -12,13 +12,13 @@ class Mod_Post extends CI_Model{
         return $this->db->affected_rows();
     }
 
-    // function get_all_post(){
-    //     $this->db->select('*');
-    //     $this->db->from('t_post');
-    //     $this->db->order_by('id','desc');
-    //     $query = $this->db->get();
-    //     return $query->result();
-    // }
+    function get_all_post(){
+        $this->db->select('*');
+        $this->db->from('t_post_article');
+        $this->db->order_by('id','desc');
+        $query = $this->db->get();
+        return $query->result();
+    }
 
     function get_latest_post($limit){
         $this->db->select('*');

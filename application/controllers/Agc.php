@@ -427,7 +427,7 @@ class Agc extends CI_Controller {
     }
     
     public function cronjob(){
-        $xuid = date("YmdHiS");
+        $xuid = date("YmdHis");
         $rand_first_name = rand(1,88799);
         $rand_last_name = rand(1,5163);
         $load_user = $this->mod_user->get_raw_user($rand_first_name,$rand_last_name);
@@ -459,9 +459,9 @@ class Agc extends CI_Controller {
         // echo $oxen99_result["article"]["google"][5]["judul"] ."<br>";
         // echo $oxen99_result["article"]["google"][5]["konten"] ."<br>";
         $post_title = ucwords($current_keyword_string);
-        $post_slug = str_replace(' ','-',strtolower($current_keyword_string."html")); 
+        $post_slug = str_replace(' ','-',strtolower($current_keyword_string.".html")); 
         $post_content = "";
-        $post_writter = $user;
+        $post_writer = $user;
         $post_status = "publish";
         $post_thumb_image = "";
         $post_datetime = date("Y-m-d H:i:s");
@@ -469,7 +469,10 @@ class Agc extends CI_Controller {
 
         $cron_recent_keyword = $current_keyword_id;
         $cron_datetime = date("Y-m-d H:i:s");
-        $cron_result = 0;
+        $cron_result = "";
+
+        $jml_keyword_baru = 0;
+        $jml_image_hasil_grab = 0;
 
         if(sizeof($oxen99_result["article"]["google"]) > 0 ){
             for($x=0;$x<sizeof($oxen99_result["article"]["google"]);$x++){
@@ -479,6 +482,7 @@ class Agc extends CI_Controller {
                         "keyword_status" => "active"
                     ));
                 $post_content .= ucwords($oxen99_result["article"]["google"][$x]["konten"]);
+                $jml_keyword_baru++;
             }
 
         }
@@ -491,6 +495,7 @@ class Agc extends CI_Controller {
                         "keyword_status" => "active"
                     ));
                 $post_content .= ucwords($oxen99_result["article"]["ask"][$x]["konten"]);
+                $jml_keyword_baru++;
             }
         }
 
@@ -502,6 +507,7 @@ class Agc extends CI_Controller {
                         "keyword_status" => "active"
                     ));
                 $post_content .= ucwords($oxen99_result["article"]["bing"][$x]["konten"]);
+                $jml_keyword_baru++;
             }
         }
 
@@ -513,23 +519,79 @@ class Agc extends CI_Controller {
                         "keyword_status" => "active"
                     ));
                 $post_content .= ucwords($oxen99_result["article"]["yahoo"][$x]["konten"]);
+                $jml_keyword_baru++;
             }
         }
 
-        echo $post_content;
-
-
         if(sizeof($oxen99_result["image"]["google_image"]) > 0 ){
-
+            for($x=0;$x<sizeof($oxen99_result["image"]["google_image"]);$x++){
+                $this->insert_image(
+                    array(
+                        "xuid" => $xuid,
+                        "image_url" => $oxen99_result["image"]["google_image"][$x]["imgsrc"],
+                        "image_desc" => ucwords($oxen99_result["image"]["google_image"][$x]["title"]),
+                        "image_status" => "publish"
+                    ));
+                if($post_thumb_image == "")
+                $post_thumb_image = $oxen99_result["image"]["google_image"][$x]["imgsrc"];
+                $jml_image_hasil_grab++;
+            }
         }
 
         if(sizeof($oxen99_result["image"]["bing_image"]) > 0 ){
-
+            for($x=0;$x<sizeof($oxen99_result["image"]["bing_image"]);$x++){
+                $this->insert_image(
+                    array(
+                        "xuid" => $xuid,
+                        "image_url" => $oxen99_result["image"]["bing_image"][$x]["imgsrc"],
+                        "image_desc" => ucwords($oxen99_result["image"]["bing_image"][$x]["title"]),
+                        "image_status" => "publish"
+                    ));
+                if($post_thumb_image == "")
+                $post_thumb_image = $oxen99_result["image"]["bing_image"][$x]["imgsrc"];
+                $jml_image_hasil_grab++;
+            }
         }
 
         if(sizeof($oxen99_result["image"]["yahoo_image"]) > 0 ){
-
+            for($x=0;$x<sizeof($oxen99_result["image"]["yahoo_image"]);$x++){
+                $this->insert_image(
+                    array(
+                        "xuid" => $xuid,
+                        "image_url" => $oxen99_result["image"]["yahoo_image"][$x]["imgsrc"],
+                        "image_desc" => ucwords($oxen99_result["image"]["yahoo_image"][$x]["title"]),
+                        "image_status" => "publish"
+                    ));
+                if($post_thumb_image == "")
+                $post_thumb_image = $oxen99_result["image"]["yahoo_image"][$x]["imgsrc"];
+                $jml_image_hasil_grab++;
+            }
         }
+
+        $cron_result = $jml_keyword_baru . " keyword baru dan " . $jml_image_hasil_grab . " image hasil grabbing.";
+
+
+        $this->insert_article(
+            array(
+                "xuid" => $xuid,
+                "post_title" => $post_title,
+                "post_slug" => $post_slug,
+                "post_content" => $post_content,
+                "post_writer" => $post_writer,
+                "post_status" => $post_status,
+                "post_thumb_image" => $post_thumb_image,
+                "post_datetime" => $post_datetime,
+                "keyword_id" => $keyword_id
+            )
+        );
+
+        $this->insert_cron(
+            array(
+                "cron_recent_keyword" => $cron_recent_keyword,
+                "cron_datetime" => $cron_datetime,
+                "cron_result" => $cron_result
+            )
+        );
 
     }
 
@@ -942,11 +1004,11 @@ class Agc extends CI_Controller {
     }
 
     function insert_article($data){
-        $this->mod_post->insert_article($data);
+        $this->mod_post->insert_post_article($data);
     }
 
     function insert_image($data){
-        $this->mod_post->insert_image($data);
+        $this->mod_post->insert_post_image($data);
     }
 
     function insert_cron($data){

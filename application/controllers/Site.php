@@ -14,7 +14,7 @@ class Site extends CI_Controller {
 	public function index(){
 		$data["config"] = $this->site_config;
 		$data["latest_post"] = $this->mod_post->get_latest_post($this->site_config[0]->post_homepage);
-		$this->load->view($this->theme.'/homepage',$data);
+		$this->load->view($this->theme.'/template',$data);
 	}
 
 	public function detail($slug){
