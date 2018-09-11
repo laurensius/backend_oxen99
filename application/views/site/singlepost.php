@@ -57,27 +57,50 @@
   <div class="content">
     <div class="content_resize">
       <div class="mainbar">
-        <?php foreach($latest_post as $posts) {?>
+        <?php foreach($detail as $posts) {?>
         <div class="article">
-          <!-- <h2><?php echo $posts->post_title; ?></h2>
-          <p class="infopost">Posted <span class="date">on <?php echo $posts->post_datetime; ?></span> by <a href="#"><?php echo $posts->post_writer; ?></a> &nbsp;&nbsp;|&nbsp;&nbsp; </p> -->
-          <div class="clr"></div>
-          <div class="img"><img src="<?php echo $posts->post_thumb_image; ?>" width="179" height="200" alt="" class="fl" /></div>
-          <div class="post_content">
+          <!-- <h2><?php echo $posts->post_title; ?></h2> -->
+          <!-- <p class="infopost">Posted <span class="date">on <?php echo $posts->post_datetime; ?></span> by <a href="#"><?php echo $posts->post_writer; ?></a> &nbsp;&nbsp;|&nbsp;&nbsp; </p> -->
+          <!-- <div class="clr"></div> -->
+          <!-- <div class="img"><img src="<?php echo $posts->post_thumb_image; ?>" width="179" height="200" alt="" class="fl" /></div> -->
+          <div> <!--class="post_content"-->
             <p>
             <h2><?php echo $posts->post_title; ?></h2>
+            <!-- AddToAny BEGIN -->
+            <div class="a2a_kit a2a_kit_size_32 a2a_default_style">
+            <a class="a2a_dd" href="https://www.addtoany.com/share"></a>
+            <a class="a2a_button_facebook"></a>
+            <a class="a2a_button_google_plus"></a>
+            <a class="a2a_button_line"></a>
+            <a class="a2a_button_whatsapp"></a>
+            <a class="a2a_button_twitter"></a>
+            </div>
+            <script async src="https://static.addtoany.com/menu/page.js"></script>
+            <!-- AddToAny END -->
             <p class="infopost">Posted <span class="date">on <?php echo $posts->post_datetime; ?></span>  &nbsp;&nbsp;|&nbsp;&nbsp; by <a href="#"><?php echo $posts->post_writer; ?></a> </p> 
             <div class="clr"></div>
+            
             <?php
-            $echo = str_split($posts->post_content,150); 
+            $echo = str_split($posts->post_content,400); 
             echo $echo[0]; 
             ?>
             </p>
-            <p class="spec"><a href="<?php echo "/result/".$posts->post_slug; ?>" class="rm">Read more...</a></p>
+            <!-- <p class="spec"><a href="<?php echo "/result/".$posts->post_slug; ?>" class="rm">Read more...</a></p> -->
           </div>
           <div class="clr"></div>
         </div>
         <?php } ?>
+        <div id="galery">
+          <?php 
+          if(sizeof($images) > 15){
+            $jml = 15;
+          }else{
+            $jml = sizeof($images);
+          }
+          for($x=0;$x<$jml;$x++) {?>
+          <a href="#"><img src="<?php echo $images[$x]->image_url; ?>" width="300" alt=""/></a> 
+          <?php } ?>
+        </div>
         <!-- <p class="pages"><small>Page 1 of 2 &nbsp;&nbsp;&nbsp;</small> <span>1</span> <a href="#">2</a> <a href="#">&raquo;</a></p> -->
       </div>
       <div class="sidebar">
@@ -113,7 +136,13 @@
     <div class="fbg_resize">
       <div class="col c1">
         <h2><span>Image</span> Gallery</h2>
-        <a href="#"><img src="<?php echo base_url('assets/images/gal1.jpg'); ?>" width="75" height="75" alt="" class="gal" /></a> <a href="#"><img src="<?php echo base_url('assets/images/gal2.jpg'); ?>" width="75" height="75" alt="" class="gal" /></a> <a href="#"><img src="<?php echo base_url('assets/images/gal3.jpg'); ?>" width="75" height="75" alt="" class="gal" /></a> <a href="#"><img src="<?php echo base_url('assets/images/gal4.jpg'); ?>" width="75" height="75" alt="" class="gal" /></a> <a href="#"><img src="<?php echo base_url('assets/images/gal5.jpg'); ?>" width="75" height="75" alt="" class="gal" /></a> <a href="#"><img src="<?php echo base_url('assets/images/gal6.jpg'); ?>" width="75" height="75" alt="" class="gal" /></a> </div>
+        <a href="#"><img src="<?php echo base_url('assets/images/gal1.jpg'); ?>" width="75" height="75" alt="" class="gal" /></a> 
+        <a href="#"><img src="<?php echo base_url('assets/images/gal2.jpg'); ?>" width="75" height="75" alt="" class="gal" /></a>
+        <a href="#"><img src="<?php echo base_url('assets/images/gal3.jpg'); ?>" width="75" height="75" alt="" class="gal" /></a> 
+        <a href="#"><img src="<?php echo base_url('assets/images/gal4.jpg'); ?>" width="75" height="75" alt="" class="gal" /></a> 
+        <a href="#"><img src="<?php echo base_url('assets/images/gal5.jpg'); ?>" width="75" height="75" alt="" class="gal" /></a>
+        <a href="#"><img src="<?php echo base_url('assets/images/gal6.jpg'); ?>" width="75" height="75" alt="" class="gal" /></a>
+      </div>
       <div class="col c2">
         <h2><span>Services</span> Overview</h2>
         <p>Curabitur sed urna id nunc pulvinar semper. Nunc sit amet tortor sit amet lacus sagittis posuere cursus vitae nunc.Etiam venenatis, turpis at eleifend porta, nisl nulla bibendum justo.</p>

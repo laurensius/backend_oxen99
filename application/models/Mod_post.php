@@ -37,6 +37,16 @@ class Mod_Post extends CI_Model{
         return $query->result();
     }
 
+    function get_images($xuid){
+        $this->db->select('*');
+        $this->db->from('t_post_image');
+        $this->db->where('xuid=',$xuid);
+        $query = $this->db->get();
+        return $query->result();
+    }
+
+
+
     function delete_post($the_post){
         $this->db->delete('t_post_article', $the_post);  
         return $this->db->affected_rows();

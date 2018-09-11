@@ -18,10 +18,11 @@ class Site extends CI_Controller {
 	}
 
 	public function detail($slug){
-		// $this->load->view('site/detail');
-		header('Content-type:json');
-		$hasil = $this->mod_post->get_post_by_slug($slug);
-		echo json_encode($hasil,JSON_PRETTY_PRINT);
+		$data["config"] = $this->site_config;
+		$data["latest_post"] = $this->mod_post->get_latest_post($this->site_config[0]->post_homepage);
+		$data["detail"] = $this->mod_post->get_post_by_slug($slug);
+		$data["images"] = $this->mod_post->get_images($data["detail"][0]->xuid);
+		$this->load->view($this->theme.'/singlepost',$data);
 	}
 
 
