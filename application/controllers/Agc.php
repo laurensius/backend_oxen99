@@ -431,7 +431,7 @@ class Agc extends CI_Controller {
         $rand_first_name = rand(1,88799);
         $rand_last_name = rand(1,5163);
         $load_user = $this->mod_user->get_raw_user($rand_first_name,$rand_last_name);
-        $user =  $load_user[0]->first_name . " " . $load_user[0]->last_name; 
+        $user =  $load_user[0]->first_name . " " . $load_user[0]->last_name;
         $load_recent_keyword = $this->mod_cron->get_recent_keyword();
         $current_keyword_id = $load_recent_keyword[0]->cron_recent_keyword + 1;
         $hasil_cek = false;
@@ -451,7 +451,7 @@ class Agc extends CI_Controller {
                 $hasil_cek = false;
                 $current_keyword_id++;
             }
-        } 
+        }
 
         // echo json_encode($this->oxen99($result[0]->keyword),JSON_PRETTY_PRINT);
         $oxen99_result = $this->oxen99($result[0]->keyword);
@@ -459,7 +459,7 @@ class Agc extends CI_Controller {
         // echo $oxen99_result["article"]["google"][5]["judul"] ."<br>";
         // echo $oxen99_result["article"]["google"][5]["konten"] ."<br>";
         $post_title = ucwords($current_keyword_string);
-        $post_slug = str_replace(' ','-',strtolower($current_keyword_string.".html")); 
+        $post_slug = str_replace(' ','-',strtolower($current_keyword_string.".html"));
         $post_content = "";
         $post_writer = $user;
         $post_status = "publish";
@@ -600,6 +600,7 @@ class Agc extends CI_Controller {
 	}
 
 	public function oxen99($raw_query_string){
+	    header('Content-Type: application/json');
         $clean_query_string = $this->clear_from_badword($raw_query_string);
         $hasil_google = $this->grabbing_google_article($clean_query_string);
         $hasil_ask = $this->grabbing_ask_article($clean_query_string);
@@ -626,10 +627,11 @@ class Agc extends CI_Controller {
             "article" => $response_article,
             "image" => $response_image,
         );
-        return $response;
+//         return $response;
+        echo json_encode($response,JSON_PRETTY_PRINT);
     }
 
-	function random_agent(){ 
+	function random_agent(){
 		$random_jenis = rand( 0 , sizeof($this->array_browser) - 1 );
 		$x = 0;
 		foreach($this->array_browser as $key => $value) {
@@ -687,40 +689,40 @@ class Agc extends CI_Controller {
         $raw_string = str_replace("Ñ","N",$raw_string);
     
         //2) Translation CP1252. &ndash; => -
-        $trans = get_html_translation_table(HTML_ENTITIES); 
-        $trans[chr(130)] = '&sbquo;';    // Single Low-9 Quotation Mark 
-        $trans[chr(131)] = '&fnof;';    // Latin Small Letter F With Hook 
-        $trans[chr(132)] = '&bdquo;';    // Double Low-9 Quotation Mark 
-        $trans[chr(133)] = '&hellip;';    // Horizontal Ellipsis 
-        $trans[chr(134)] = '&dagger;';    // Dagger 
-        $trans[chr(135)] = '&Dagger;';    // Double Dagger 
-        $trans[chr(136)] = '&circ;';    // Modifier Letter Circumflex Accent 
-        $trans[chr(137)] = '&permil;';    // Per Mille Sign 
-        $trans[chr(138)] = '&Scaron;';    // Latin Capital Letter S With Caron 
-        $trans[chr(139)] = '&lsaquo;';    // Single Left-Pointing Angle Quotation Mark 
-        $trans[chr(140)] = '&OElig;';    // Latin Capital Ligature OE 
-        $trans[chr(145)] = '&lsquo;';    // Left Single Quotation Mark 
-        $trans[chr(146)] = '&rsquo;';    // Right Single Quotation Mark 
-        $trans[chr(147)] = '&ldquo;';    // Left Double Quotation Mark 
-        $trans[chr(148)] = '&rdquo;';    // Right Double Quotation Mark 
-        $trans[chr(149)] = '&bull;';    // Bullet 
-        $trans[chr(150)] = '&ndash;';    // En Dash 
-        $trans[chr(151)] = '&mdash;';    // Em Dash 
-        $trans[chr(152)] = '&tilde;';    // Small Tilde 
-        $trans[chr(153)] = '&trade;';    // Trade Mark Sign 
-        $trans[chr(154)] = '&scaron;';    // Latin Small Letter S With Caron 
-        $trans[chr(155)] = '&rsaquo;';    // Single Right-Pointing Angle Quotation Mark 
-        $trans[chr(156)] = '&oelig;';    // Latin Small Ligature OE 
-        $trans[chr(159)] = '&Yuml;';    // Latin Capital Letter Y With Diaeresis 
-        $trans['euro'] = '&euro;';    // euro currency symbol 
-        ksort($trans); 
+        $trans = get_html_translation_table(HTML_ENTITIES);
+        $trans[chr(130)] = '&sbquo;';    // Single Low-9 Quotation Mark
+        $trans[chr(131)] = '&fnof;';    // Latin Small Letter F With Hook
+        $trans[chr(132)] = '&bdquo;';    // Double Low-9 Quotation Mark
+        $trans[chr(133)] = '&hellip;';    // Horizontal Ellipsis
+        $trans[chr(134)] = '&dagger;';    // Dagger
+        $trans[chr(135)] = '&Dagger;';    // Double Dagger
+        $trans[chr(136)] = '&circ;';    // Modifier Letter Circumflex Accent
+        $trans[chr(137)] = '&permil;';    // Per Mille Sign
+        $trans[chr(138)] = '&Scaron;';    // Latin Capital Letter S With Caron
+        $trans[chr(139)] = '&lsaquo;';    // Single Left-Pointing Angle Quotation Mark
+        $trans[chr(140)] = '&OElig;';    // Latin Capital Ligature OE
+        $trans[chr(145)] = '&lsquo;';    // Left Single Quotation Mark
+        $trans[chr(146)] = '&rsquo;';    // Right Single Quotation Mark
+        $trans[chr(147)] = '&ldquo;';    // Left Double Quotation Mark
+        $trans[chr(148)] = '&rdquo;';    // Right Double Quotation Mark
+        $trans[chr(149)] = '&bull;';    // Bullet
+        $trans[chr(150)] = '&ndash;';    // En Dash
+        $trans[chr(151)] = '&mdash;';    // Em Dash
+        $trans[chr(152)] = '&tilde;';    // Small Tilde
+        $trans[chr(153)] = '&trade;';    // Trade Mark Sign
+        $trans[chr(154)] = '&scaron;';    // Latin Small Letter S With Caron
+        $trans[chr(155)] = '&rsaquo;';    // Single Right-Pointing Angle Quotation Mark
+        $trans[chr(156)] = '&oelig;';    // Latin Small Ligature OE
+        $trans[chr(159)] = '&Yuml;';    // Latin Capital Letter Y With Diaeresis
+        $trans['euro'] = '&euro;';    // euro currency symbol
+        ksort($trans);
         
         foreach ($trans as $k => $v) {
             $raw_string = str_replace($v, $k, $raw_string);
         }
         
         // 5) remove Windows-1252 symbols like "TradeMark", "Euro"...
-        $raw_string = preg_replace('/[^(\x20-\x7F)]*/','', $raw_string); 
+        $raw_string = preg_replace('/[^(\x20-\x7F)]*/','', $raw_string);
         $raw_string = str_replace('#39;', '\'', $raw_string);
         $targets=array('\r\n','\n','\r','\t');
         $results=array(" "," "," ","");
